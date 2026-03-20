@@ -53,7 +53,7 @@ Retrieve: the PR title, body (description), all applied labels, and the list of 
 
 ## Step 2: Run Quality Checks
 
-Run all six checks below. Record a PASS or FAIL result for each.
+Run all seven checks below. Record a PASS or FAIL result for each.
 
 ---
 
@@ -126,7 +126,20 @@ The PR MUST have at least one person assigned to it.
 
 ---
 
-### Check F — Scope Focus
+### Check F — Linked Issue
+
+The PR MUST be associated with at least one GitHub issue.
+
+There are two accepted ways to link an issue:
+
+1. **Closing keyword in the PR description**: a closing keyword followed by an issue reference (e.g., `Closes #123`, `Fixes #456`). Accepted keywords (case-insensitive): `closes`, `fixes`.
+2. **Manually linked via the Development section**: use the GitHub API to check whether the PR has any linked issues (development links). If at least one issue is returned, this check passes regardless of the description content.
+
+**Fail if**: the PR description contains no issue reference using a recognised closing keyword, AND no linked issue is found via the GitHub API.
+
+---
+
+### Check G — Scope Focus
 
 The PR should be focused on a single, coherent concern. It should not mix unrelated changes that make it harder to review, understand, or revert.
 
@@ -142,7 +155,7 @@ Apply reasonable judgment. Only fail when the lack of focus is clear and signifi
 
 ## Step 3: Report Results
 
-### If ALL checks pass (A through F)
+### If ALL checks pass (A through G)
 
 1. Write `PASS` to `/tmp/pr-check-status`:
    ```bash
@@ -177,6 +190,7 @@ This PR needs a few updates before it is ready to merge. Here is what the automa
 | Description — What was changed | ✅/❌ | _explain result_ |
 | Description — How it was validated | ✅/❌ | _explain result_ |
 | Assignee | ✅/❌ | _explain result_ |
+| Linked Issue | ✅/❌ | _explain result_ |
 | Scope Focus | ✅/❌ | _explain result_ |
 
 ### What to fix
@@ -188,6 +202,7 @@ _For each failing check, provide a clear and actionable explanation. Examples:_
 - **Description — What**: Please add a short summary of what files or components were modified.
 - **Description — How validated**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
 - **Assignee**: Please assign at least one person to this PR.
+- **Linked Issue**: This PR is not linked to any issue. Please reference the related issue using a closing keyword (e.g., `Closes #42`, `Fixes #7`), or link it manually via the Development section of the PR sidebar. If no issue exists yet, create one first.
 - **Scope Focus**: This PR appears to mix unrelated changes. Consider splitting it into separate PRs, or add a note to the description explaining how the different changes are connected.
 
 Once you've made the updates, this check will re-run automatically.
@@ -198,7 +213,8 @@ Once you've made the updates, this check will re-run automatically.
 
 - Be constructive and helpful — not bureaucratic or harsh.
 - Apply reasonable judgment; do not fail for minor formatting preferences.
-- If `Closes #123` or similar appears in the description, that satisfies Check B (why), since the linked issue provides context.
+- If `Closes #123`, `Fixes #456`, or similar appears in the description, that satisfies Check B (why) and Check F (linked issue), since the linked issue provides context.
+- If a linked issue is set via the Development section of the PR (visible through the GitHub API), that satisfies Check F even without a closing keyword in the description.
 - If the description is completely empty, fail Checks B, C, and D.
 - Do not comment on code quality, naming conventions, or anything outside the scope of this check.
 - Only post one comment per run — do not duplicate.
