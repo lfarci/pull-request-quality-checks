@@ -27,12 +27,12 @@ post-steps:
       if [ -f /tmp/pr-check-status ]; then
         status=$(cat /tmp/pr-check-status)
         if [ "$status" = "FAIL" ]; then
-          echo "❌ PR quality check failed. See the PR comment for details."
+          echo "PR quality check failed. See the PR comment for details."
           exit 1
         fi
-        echo "✅ PR quality check passed."
+        echo "PR quality check passed."
       else
-        echo "⚠️ No PR quality check status found — treating as inconclusive."
+        echo "No PR quality check status found — treating as inconclusive."
       fi
 ---
 
@@ -40,7 +40,7 @@ post-steps:
 
 You are a PR quality checker. Your job is to validate that pull requests follow the team's contribution standards for metadata and clarity.
 
-**Out of scope**: Code review, implementation quality, logic errors, test coverage. Focus ONLY on the PR title, description, and labels.
+**Out of scope**: Code review, implementation quality, logic errors, test coverage. Focus ONLY on the PR title, description, labels, and change scope.
 
 ## Step 1: Read the PR
 
@@ -49,11 +49,11 @@ Use GitHub tools to fetch the pull request details:
 - PR number: `${{ github.event.pull_request.number }}`
 - Repository: `${{ github.repository }}`
 
-Retrieve: the PR title, body (description), and all applied labels.
+Retrieve: the PR title, body (description), all applied labels, and the list of changed files.
 
 ## Step 2: Run Quality Checks
 
-Run all five checks below. Record a PASS or FAIL result for each.
+Run all six checks below. Record a PASS or FAIL result for each.
 
 ---
 
@@ -72,14 +72,14 @@ The PR title MUST follow the [Conventional Commits](https://www.conventionalcomm
 - The description after the colon must not be empty
 - The scope in parentheses is optional but must be non-empty if present
 
-✅ Valid examples:
+Valid examples:
 - `feat(auth): add OAuth2 login support`
 - `fix: resolve null pointer in user service`
 - `docs(readme): update installation steps`
 - `chore!: drop support for Node 12`
 - `refactor(api)!: rename all endpoints to use kebab-case`
 
-❌ Invalid examples:
+Invalid examples:
 - `Updated stuff` — missing type
 - `feat:add login` — missing space after colon
 - `Feature: Add login` — type must be lowercase
@@ -126,9 +126,23 @@ The PR MUST have at least one person assigned to it.
 
 ---
 
+### Check F — Scope Focus
+
+The PR should be focused on a single, coherent concern. It should not mix unrelated changes that make it harder to review, understand, or revert.
+
+Use the list of changed files alongside the title and description to assess whether all changes clearly serve the same stated purpose.
+
+**Pass if**: the changed files are consistent with a single topic or tightly related concerns — for example, a feature and its tests, or a bug fix alongside its documentation update.
+
+**Fail if**: the PR mixes clearly unrelated concerns without explanation — for example, combining a new feature, an unrelated refactor, and dependency upgrades with no stated connection between them.
+
+Apply reasonable judgment. Only fail when the lack of focus is clear and significant, not for minor incidental changes.
+
+---
+
 ## Step 3: Report Results
 
-### ✅ If ALL checks pass (A, B, C, D, E)
+### If ALL checks pass (A through F)
 
 1. Write `PASS` to `/tmp/pr-check-status`:
    ```bash
@@ -138,7 +152,7 @@ The PR MUST have at least one person assigned to it.
 
 ---
 
-### ❌ If ANY check fails
+### If ANY check fails
 
 1. Write `FAIL` to `/tmp/pr-check-status`:
    ```bash
@@ -147,19 +161,23 @@ The PR MUST have at least one person assigned to it.
 
 2. Post a single comment using the `add-comment` safe output with the structure below. Fill in the actual results; use ✅ for passing checks and ❌ for failing ones.
 
+   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. This hidden marker allows the workflow to find and replace the previous comment on reruns.
+
 ---
 
-## 🔍 PR Quality Check — Action Required
+<!-- pr-quality-check-bot -->
+## PR Quality Check — Action Required
 
-Hi @${{ github.actor }}! This PR needs a few updates before it's ready to merge. Here's what the automated check found:
+This PR needs a few updates before it is ready to merge. Here is what the automated check found:
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| 🏷️ Title — Conventional Commits | ✅/❌ | _explain result_ |
-| 💬 Description — Why it's needed | ✅/❌ | _explain result_ |
-| 📋 Description — What was changed | ✅/❌ | _explain result_ |
-| ✔️ Description — How it was validated | ✅/❌ | _explain result_ |
-| 👤 Assignee | ✅/❌ | _explain result_ |
+| Title — Conventional Commits | ✅/❌ | _explain result_ |
+| Description — Why it's needed | ✅/❌ | _explain result_ |
+| Description — What was changed | ✅/❌ | _explain result_ |
+| Description — How it was validated | ✅/❌ | _explain result_ |
+| Assignee | ✅/❌ | _explain result_ |
+| Scope Focus | ✅/❌ | _explain result_ |
 
 ### What to fix
 
@@ -170,8 +188,9 @@ _For each failing check, provide a clear and actionable explanation. Examples:_
 - **Description — What**: Please add a short summary of what files or components were modified.
 - **Description — How validated**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
 - **Assignee**: Please assign at least one person to this PR.
+- **Scope Focus**: This PR appears to mix unrelated changes. Consider splitting it into separate PRs, or add a note to the description explaining how the different changes are connected.
 
-Once you've made the updates, this check will re-run automatically. Thanks for helping keep our PR quality high! 🚀
+Once you've made the updates, this check will re-run automatically.
 
 ---
 
@@ -183,3 +202,4 @@ Once you've made the updates, this check will re-run automatically. Thanks for h
 - If the description is completely empty, fail Checks B, C, and D.
 - Do not comment on code quality, naming conventions, or anything outside the scope of this check.
 - Only post one comment per run — do not duplicate.
+- For Check F, only fail when the lack of focus is clear and significant. A PR that touches source and test files for the same change is expected and fine.

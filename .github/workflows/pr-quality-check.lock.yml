@@ -22,7 +22,7 @@
 #
 # Validates PR title (Conventional Commits), description completeness (why/what/how), and label presence. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"a1993af49b7a96fa0d53410fc40fd888af28d3b3166f84e343355e1a6deecc67","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"6f04ae418436305e0c6eb6e02dd38e446a7c552137d87348108e6b7d0e3aa19b","compiler_version":"v0.62.2","strict":true}
 
 name: "PR Quality Check"
 "on":
@@ -197,7 +197,6 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
         with:
@@ -715,12 +714,12 @@ jobs:
           if [ -f /tmp/pr-check-status ]; then
             status=$(cat /tmp/pr-check-status)
             if [ "$status" = "FAIL" ]; then
-              echo "❌ PR quality check failed. See the PR comment for details."
+              echo "PR quality check failed. See the PR comment for details."
               exit 1
             fi
-            echo "✅ PR quality check passed."
+            echo "PR quality check passed."
           else
-            echo "⚠️ No PR quality check status found — treating as inconclusive."
+            echo "No PR quality check status found — treating as inconclusive."
           fi
 
       - name: Upload agent artifacts
@@ -1057,6 +1056,31 @@ jobs:
           GH_HOST="${GITHUB_SERVER_URL#https://}"
           GH_HOST="${GH_HOST#http://}"
           echo "GH_HOST=${GH_HOST}" >> "$GITHUB_ENV"
+      - name: Delete previous PR quality check comment
+        # NOTE: This step is a post-compile addition — gh-aw has no hook for
+        # injecting custom steps into the safe_outputs job via the .md source.
+        # It must be re-added here manually after every `gh aw compile` run.
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request?.number;
+            if (!prNumber) return;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+            const marker = '<!-- pr-quality-check-bot -->';
+            for (const comment of comments.filter(c => c.body.includes(marker))) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id,
+              });
+              core.info(`Deleted previous PR quality check comment: ${comment.id}`);
+            }
       - name: Process Safe Outputs
         id: process_safe_outputs
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
