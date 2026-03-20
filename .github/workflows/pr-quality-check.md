@@ -4,7 +4,7 @@ description: Validates PR title (Conventional Commits), description completeness
 
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled, assigned, unassigned]
   skip-bots: [dependabot, renovate, github-actions]
 
 permissions:
@@ -118,11 +118,11 @@ Look for: unit tests, integration tests, end-to-end tests, manual testing steps,
 
 ---
 
-### Check E — Labels
+### Check E — Assignee
 
-The PR MUST have at least one label applied.
+The PR MUST have at least one person assigned to it.
 
-**Fail if**: no labels are attached to the PR.
+**Fail if**: no assignees are set on the PR.
 
 ---
 
@@ -159,7 +159,7 @@ Hi @${{ github.actor }}! This PR needs a few updates before it's ready to merge.
 | 💬 Description — Why it's needed | ✅/❌ | _explain result_ |
 | 📋 Description — What was changed | ✅/❌ | _explain result_ |
 | ✔️ Description — How it was validated | ✅/❌ | _explain result_ |
-| 🔖 Labels | ✅/❌ | _explain result_ |
+| 👤 Assignee | ✅/❌ | _explain result_ |
 
 ### What to fix
 
@@ -169,7 +169,7 @@ _For each failing check, provide a clear and actionable explanation. Examples:_
 - **Description — Why**: Please explain the motivation for this change or link to the issue it addresses (e.g., `Closes #42`).
 - **Description — What**: Please add a short summary of what files or components were modified.
 - **Description — How validated**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
-- **Labels**: Please add at least one label (e.g., `bug`, `enhancement`, `documentation`).
+- **Assignee**: Please assign at least one person to this PR.
 
 Once you've made the updates, this check will re-run automatically. Thanks for helping keep our PR quality high! 🚀
 

@@ -22,7 +22,7 @@
 #
 # Validates PR title (Conventional Commits), description completeness (why/what/how), and label presence. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"0111d961c6305625c2b10f33e289f5e8d81e16cc2588dcb71d5a81af0ccd88b8","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"a1993af49b7a96fa0d53410fc40fd888af28d3b3166f84e343355e1a6deecc67","compiler_version":"v0.62.2","strict":true}
 
 name: "PR Quality Check"
 "on":
@@ -34,6 +34,8 @@ name: "PR Quality Check"
     - reopened
     - labeled
     - unlabeled
+    - assigned
+    - unassigned
   # skip-bots: # Skip-bots processed as bot check in pre-activation job
   # - dependabot # Skip-bots processed as bot check in pre-activation job
   # - renovate # Skip-bots processed as bot check in pre-activation job
