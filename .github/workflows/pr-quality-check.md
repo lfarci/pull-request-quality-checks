@@ -19,6 +19,7 @@ tools:
 safe-outputs:
   add-comment:
     max: 1
+    hide-older-comments: true
 
 post-steps:
   - name: Fail job if PR quality check did not pass
