@@ -77,9 +77,13 @@ safe-outputs:
                 return;
               }
 
-              if (!item.body.startsWith(`${marker}\n`)) {
-                core.setFailed(`Comment body must begin with "${marker}" followed by a newline.`);
-                return;
+              let commentBody = item.body.replace(/^\uFEFF/, '').replace(/^\s+/, '');
+              if (commentBody.startsWith(marker)) {
+                const remainder = commentBody.slice(marker.length).replace(/^\r?\n?/, '').replace(/^\s*/, '');
+                commentBody = remainder.length > 0 ? `${marker}\n${remainder}` : `${marker}\n`;
+              } else {
+                core.warning(`Comment body did not begin with "${marker}". Prepending the managed marker automatically.`);
+                commentBody = `${marker}\n${commentBody}`;
               }
 
               const comments = await github.paginate(github.rest.issues.listComments, {
@@ -104,18 +108,18 @@ safe-outputs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: issueNumber,
-                  body: item.body,
+                  body: commentBody,
                 });
                 core.info(`Created PR quality comment ${createdComment.data.id}.`);
                 return;
               }
 
-              if (primaryComment.body !== item.body) {
+              if (primaryComment.body !== commentBody) {
                 await github.rest.issues.updateComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   comment_id: primaryComment.id,
-                  body: item.body,
+                  body: commentBody,
                 });
                 core.info(`Updated PR quality comment ${primaryComment.id}.`);
               } else {

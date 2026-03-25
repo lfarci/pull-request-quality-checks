@@ -22,7 +22,7 @@
 #
 # Validates PR title (Conventional Commits), description completeness (why/what/how), and label presence. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"940e81bbe1f333d0cde37ea06e6744e1ae0df467c14240f3845f45297075c9a3","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"03c58920fc73e96b2a848c355890bd9226cf5ee3fc317abd138dda7d95198158","compiler_version":"v0.62.2","strict":true}
 
 name: "PR Quality Check"
 "on":
@@ -1133,9 +1133,13 @@ jobs:
               return;
             }
 
-            if (!item.body.startsWith(`${marker}\n`)) {
-              core.setFailed(`Comment body must begin with "${marker}" followed by a newline.`);
-              return;
+            let commentBody = item.body.replace(/^\uFEFF/, '').replace(/^\s+/, '');
+            if (commentBody.startsWith(marker)) {
+              const remainder = commentBody.slice(marker.length).replace(/^\r?\n?/, '').replace(/^\s*/, '');
+              commentBody = remainder.length > 0 ? `${marker}\n${remainder}` : `${marker}\n`;
+            } else {
+              core.warning(`Comment body did not begin with "${marker}". Prepending the managed marker automatically.`);
+              commentBody = `${marker}\n${commentBody}`;
             }
 
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -1160,18 +1164,18 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: item.body,
+                body: commentBody,
               });
               core.info(`Created PR quality comment ${createdComment.data.id}.`);
               return;
             }
 
-            if (primaryComment.body !== item.body) {
+            if (primaryComment.body !== commentBody) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: primaryComment.id,
-                body: item.body,
+                body: commentBody,
               });
               core.info(`Updated PR quality comment ${primaryComment.id}.`);
             } else {
