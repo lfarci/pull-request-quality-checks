@@ -1,6 +1,6 @@
 ---
 name: PR Quality Check
-description: Validates PR title (Conventional Commits), description completeness (why/what/how), and label presence. Blocks merge if requirements are not met.
+description: Validates PR title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
 
 on:
   pull_request:
@@ -28,13 +28,17 @@ safe-outputs:
         pull-requests: write
       inputs:
         body:
-          description: The full PR quality comment body. It must start with the pr-quality-check-bot marker.
+          description: The full PR quality comment body. The managed marker will be normalized automatically.
           required: true
           type: string
         item_number:
           description: The pull request number to comment on. Defaults to the triggering PR when omitted.
           required: false
           type: string
+        create_if_missing:
+          description: Whether to create a managed PR quality comment when none already exists.
+          required: false
+          type: boolean
       steps:
         - name: Upsert managed PR quality comment
           uses: actions/github-script@v8
@@ -67,6 +71,7 @@ safe-outputs:
 
               const item = items[0];
               const issueNumber = Number(item.item_number || context.payload.pull_request?.number || context.issue.number);
+              const createIfMissing = item.create_if_missing !== false && item.create_if_missing !== 'false';
               if (!Number.isInteger(issueNumber) || issueNumber <= 0) {
                 core.setFailed(`Invalid pull request number: ${item.item_number}`);
                 return;
@@ -104,6 +109,11 @@ safe-outputs:
               const [primaryComment, ...duplicateComments] = managedComments;
 
               if (!primaryComment) {
+                if (!createIfMissing) {
+                  core.info('No managed PR quality comment exists, and create_if_missing is false. Skipping comment creation.');
+                  return;
+                }
+
                 const createdComment = await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -155,7 +165,7 @@ post-steps:
 
 You are a PR quality checker. Your job is to validate that pull requests follow the team's contribution standards for metadata and clarity.
 
-**Out of scope**: Code review, implementation quality, logic errors, test coverage. Focus ONLY on the PR title, description, labels, and change scope.
+**Out of scope**: Code review, implementation quality, logic errors, test coverage. Focus ONLY on the PR title, description, assignee, and change scope.
 
 ## Step 1: Read the PR
 
@@ -164,11 +174,11 @@ Use GitHub tools to fetch the pull request details:
 - PR number: `${{ github.event.pull_request.number }}`
 - Repository: `${{ github.repository }}`
 
-Retrieve: the PR title, body (description), all applied labels, and the list of changed files.
+Retrieve: the PR title, body (description), assignees, and the list of changed files.
 
 ## Step 2: Run Quality Checks
 
-Run all seven checks below. Record a PASS or FAIL result for each.
+Run all six checks below. Record a PASS or FAIL result for each.
 
 ---
 
@@ -241,20 +251,7 @@ The PR MUST have at least one person assigned to it.
 
 ---
 
-### Check F — Linked Issue
-
-The PR MUST be associated with at least one GitHub issue.
-
-There are two accepted ways to link an issue:
-
-1. **Closing keyword in the PR description**: a closing keyword followed by an issue reference (e.g., `Closes #123`, `Fixes #456`). Accepted keywords (case-insensitive): `closes`, `fixes`.
-2. **Manually linked via the Development section**: use the GitHub API to check whether the PR has any linked issues (development links). If at least one issue is returned, this check passes regardless of the description content.
-
-**Fail if**: the PR description contains no issue reference using a recognised closing keyword, AND no linked issue is found via the GitHub API.
-
----
-
-### Check G — Scope Focus
+### Check F — Scope Focus
 
 The PR should be focused on a single, coherent concern. It should not mix unrelated changes that make it harder to review, understand, or revert.
 
@@ -270,13 +267,25 @@ Apply reasonable judgment. Only fail when the lack of focus is clear and signifi
 
 ## Step 3: Report Results
 
-### If ALL checks pass (A through G)
+### If ALL checks pass (A through F)
 
 1. Write `PASS` to `/tmp/pr-check-status`:
    ```bash
    echo "PASS" > /tmp/pr-check-status
    ```
-2. Do NOT post a comment — a passing PR needs no noise.
+2. Call `upsert_pr_quality_comment` exactly once with:
+   - `item_number`: the triggering PR number
+   - `create_if_missing`: `false`
+   - `body`: the resolved comment below
+
+   This updates an existing managed PR quality comment when the PR becomes compliant again, but it does not create a first-run success comment.
+
+---
+
+<!-- pr-quality-check-bot -->
+## PR Quality Check — Resolved
+
+All PR quality requirements are now satisfied. No more action is needed.
 
 ---
 
@@ -287,37 +296,25 @@ Apply reasonable judgment. Only fail when the lack of focus is clear and signifi
    echo "FAIL" > /tmp/pr-check-status
    ```
 
-2. Call the `upsert_pr_quality_comment` safe output tool exactly once, with `item_number` set to the triggering PR number and `body` set to the comment below. Fill in the actual results; use ✅ for passing checks and ❌ for failing ones.
+2. Call the `upsert_pr_quality_comment` safe output tool exactly once, with:
+   - `item_number` set to the triggering PR number
+   - `create_if_missing` set to `true`
+   - `body` set to the comment below
 
-   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. The managed comment tool relies on this marker to update the existing PR quality comment instead of creating a duplicate.
+   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. The managed comment tool relies on this marker to update the existing PR quality comment instead of creating a duplicate. Only include bullet points for requirements that are currently failing.
 
 ---
 
 <!-- pr-quality-check-bot -->
 ## PR Quality Check — Action Required
 
-This PR needs a few updates before it is ready to merge. Here is what the automated check found:
-
-| Check | Status | Notes |
-|-------|--------|-------|
-| Title — Conventional Commits | ✅/❌ | _explain result_ |
-| Description — Why it's needed | ✅/❌ | _explain result_ |
-| Description — What was changed | ✅/❌ | _explain result_ |
-| Description — How it was validated | ✅/❌ | _explain result_ |
-| Assignee | ✅/❌ | _explain result_ |
-| Linked Issue | ✅/❌ | _explain result_ |
-| Scope Focus | ✅/❌ | _explain result_ |
-
-### What to fix
-
-_For each failing check, provide a clear and actionable explanation. Examples:_
+This PR still has a few requirements to address before it is ready to merge:
 
 - **Title**: The title `"Updated stuff"` does not follow Conventional Commits. Try: `fix: resolve login timeout issue` or `feat(profile): add avatar upload`.
-- **Description — Why**: Please explain the motivation for this change or link to the issue it addresses (e.g., `Closes #42`).
+- **Description — Why**: Please explain the motivation for this change.
 - **Description — What**: Please add a short summary of what files or components were modified.
 - **Description — How validated**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
 - **Assignee**: Please assign at least one person to this PR.
-- **Linked Issue**: This PR is not linked to any issue. Please reference the related issue using a closing keyword (e.g., `Closes #42`, `Fixes #7`), or link it manually via the Development section of the PR sidebar. If no issue exists yet, create one first.
 - **Scope Focus**: This PR appears to mix unrelated changes. Consider splitting it into separate PRs, or add a note to the description explaining how the different changes are connected.
 
 Once you've made the updates, this check will re-run automatically.
@@ -328,9 +325,8 @@ Once you've made the updates, this check will re-run automatically.
 
 - Be constructive and helpful — not bureaucratic or harsh.
 - Apply reasonable judgment; do not fail for minor formatting preferences.
-- If `Closes #123`, `Fixes #456`, or similar appears in the description, that satisfies Check B (why) and Check F (linked issue), since the linked issue provides context.
-- If a linked issue is set via the Development section of the PR (visible through the GitHub API), that satisfies Check F even without a closing keyword in the description.
 - If the description is completely empty, fail Checks B, C, and D.
 - Do not comment on code quality, naming conventions, or anything outside the scope of this check.
+- Only mention failing requirements in the action-required comment. Do not mention checks that already pass.
 - Only call `upsert_pr_quality_comment` once per run, and do not use any other comment-writing tool for this workflow.
 - For Check F, only fail when the lack of focus is clear and significant. A PR that touches source and test files for the same change is expected and fine.
