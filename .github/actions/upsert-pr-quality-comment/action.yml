@@ -1,0 +1,13 @@
+name: Upsert PR Quality Comment
+description: Create or update the managed PR quality comment from gh-aw safe output.
+inputs:
+  github-token:
+    description: GitHub token used to manage pull request comments.
+    required: true
+  marker:
+    description: Marker used to identify the managed PR quality comment.
+    required: false
+    default: "<!-- pr-quality-check-bot -->"
+runs:
+  using: node20
+  main: index.js
