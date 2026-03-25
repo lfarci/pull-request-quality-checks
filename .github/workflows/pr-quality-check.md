@@ -17,9 +17,119 @@ tools:
     toolsets: [default]
 
 safe-outputs:
-  add-comment:
-    max: 1
-    hide-older-comments: true
+  jobs:
+    upsert-pr-quality-comment:
+      description: Create or update the singleton PR quality comment for the current pull request.
+      runs-on: ubuntu-latest
+      output: Upserted PR quality comment.
+      permissions:
+        contents: read
+        issues: write
+        pull-requests: write
+      inputs:
+        body:
+          description: The full PR quality comment body. It must start with the pr-quality-check-bot marker.
+          required: true
+          type: string
+        item_number:
+          description: The pull request number to comment on. Defaults to the triggering PR when omitted.
+          required: false
+          type: string
+      steps:
+        - name: Upsert managed PR quality comment
+          uses: actions/github-script@v8
+          env:
+            GH_AW_PR_QUALITY_MARKER: "<!-- pr-quality-check-bot -->"
+          with:
+            github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+            script: |
+              const fs = require('fs');
+
+              const marker = process.env.GH_AW_PR_QUALITY_MARKER;
+              const outputFile = process.env.GH_AW_AGENT_OUTPUT;
+              if (!outputFile) {
+                core.setFailed('GH_AW_AGENT_OUTPUT is not set');
+                return;
+              }
+
+              const agentOutput = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+              const items = agentOutput.items.filter((item) => item.type === 'upsert_pr_quality_comment');
+
+              if (items.length === 0) {
+                core.info('No PR quality comment requested.');
+                return;
+              }
+
+              if (items.length > 1) {
+                core.setFailed('Expected at most one upsert_pr_quality_comment item.');
+                return;
+              }
+
+              const item = items[0];
+              const issueNumber = Number(item.item_number || context.payload.pull_request?.number || context.issue.number);
+              if (!Number.isInteger(issueNumber) || issueNumber <= 0) {
+                core.setFailed(`Invalid pull request number: ${item.item_number}`);
+                return;
+              }
+
+              if (typeof item.body !== 'string' || item.body.length === 0) {
+                core.setFailed('Comment body must be a non-empty string.');
+                return;
+              }
+
+              if (!item.body.startsWith(`${marker}\n`)) {
+                core.setFailed(`Comment body must begin with "${marker}" followed by a newline.`);
+                return;
+              }
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100,
+              });
+
+              const managedComments = comments
+                .filter((comment) =>
+                  typeof comment.body === 'string' &&
+                  comment.body.startsWith(marker) &&
+                  comment.user?.type === 'Bot'
+                )
+                .sort((left, right) => new Date(left.created_at) - new Date(right.created_at));
+
+              const [primaryComment, ...duplicateComments] = managedComments;
+
+              if (!primaryComment) {
+                const createdComment = await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: item.body,
+                });
+                core.info(`Created PR quality comment ${createdComment.data.id}.`);
+                return;
+              }
+
+              if (primaryComment.body !== item.body) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: primaryComment.id,
+                  body: item.body,
+                });
+                core.info(`Updated PR quality comment ${primaryComment.id}.`);
+              } else {
+                core.info(`PR quality comment ${primaryComment.id} is already up to date.`);
+              }
+
+              for (const duplicateComment of duplicateComments) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: duplicateComment.id,
+                });
+                core.info(`Deleted duplicate managed comment ${duplicateComment.id}.`);
+              }
 
 post-steps:
   - name: Fail job if PR quality check did not pass
@@ -173,9 +283,9 @@ Apply reasonable judgment. Only fail when the lack of focus is clear and signifi
    echo "FAIL" > /tmp/pr-check-status
    ```
 
-2. Post a single comment using the `add-comment` safe output with the structure below. Fill in the actual results; use ✅ for passing checks and ❌ for failing ones.
+2. Call the `upsert_pr_quality_comment` safe output tool exactly once, with `item_number` set to the triggering PR number and `body` set to the comment below. Fill in the actual results; use ✅ for passing checks and ❌ for failing ones.
 
-   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. This hidden marker allows the workflow to find and replace the previous comment on reruns.
+   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. The managed comment tool relies on this marker to update the existing PR quality comment instead of creating a duplicate.
 
 ---
 
@@ -218,5 +328,5 @@ Once you've made the updates, this check will re-run automatically.
 - If a linked issue is set via the Development section of the PR (visible through the GitHub API), that satisfies Check F even without a closing keyword in the description.
 - If the description is completely empty, fail Checks B, C, and D.
 - Do not comment on code quality, naming conventions, or anything outside the scope of this check.
-- Only post one comment per run — do not duplicate.
+- Only call `upsert_pr_quality_comment` once per run, and do not use any other comment-writing tool for this workflow.
 - For Check F, only fail when the lack of focus is clear and significant. A PR that touches source and test files for the same change is expected and fine.
