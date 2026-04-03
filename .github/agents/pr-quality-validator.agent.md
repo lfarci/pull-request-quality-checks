@@ -23,14 +23,10 @@ Core responsibilities:
 5. **Workflow Integration**: Provide structured feedback suitable for both human and agentic consumption
 
 Methodology for PR validation:
-1. Identify team conventions being applied (from codebase context, team documentation, or established patterns)
-2. Extract PR metadata: title, description, branch name, changed files
-3. Read code changes to understand scope and impact
-4. Evaluate against conventions:
-   - Title format and clarity
-   - Description completeness (problem statement, solution, impact, testing)
-   - Consistency with historical PRs
-   - Proper context for code reviewers
+1. Apply the `pull-request-quality-checks` skill to run all standard checks against the PR
+2. Identify team conventions being applied (from codebase context, team documentation, or established patterns)
+3. Extract PR metadata: title, description, branch name, changed files
+4. Read code changes to understand scope and impact
 5. Identify gaps or violations
 6. Provide actionable guidance
 

@@ -68,107 +68,14 @@ post-steps:
 
 # Pull Request Quality Checks
 
-You are a pull request quality checker. Your job is to validate that pull requests follow the team's contribution standards for metadata and clarity.
-
-**Out of scope**: Code review, implementation quality, logic errors, test coverage. Focus ONLY on the Pull Request title, description, assignee, and change scope.
-
-## Step 1: Read the pull request details
-
-Use GitHub tools to fetch the pull request details:
+Apply the `pull-request-quality-checks` skill to validate this pull request.
 
 - Pull request number: `${{ github.event.pull_request.number }}`
 - Repository: `${{ github.repository }}`
 
-Retrieve: the pull request title, body (description), assignees, and the list of changed files.
+## Reporting Results
 
-## Step 2: Run Quality Checks
-
-Run all six checks below. Record a PASS or FAIL result for each.
-
-### Check A: Titile Must Follow Conventional Commits Format
-
-The pull request title MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
-
-**Valid format**: `type(optional-scope): description`
-**With breaking change**: `type(optional-scope)!: description`
-
-**Allowed types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-
-**Rules**:
-- The type must be lowercase
-- The colon must be followed by exactly one space
-- The description after the colon must not be empty
-- The scope in parentheses is optional but must be non-empty if present
-
-Valid examples:
-- `feat(auth): add OAuth2 login support`
-- `fix: resolve null pointer in user service`
-- `docs(readme): update installation steps`
-- `chore!: drop support for Node 12`
-- `refactor(api)!: rename all endpoints to use kebab-case`
-
-Invalid examples:
-- `Updated stuff` : missing type
-- `feat:add login` : missing space after colon
-- `Feature: Add login` : type must be lowercase
-- `WIP` : no type or description
-- `fix()`: empty scope
-
----
-
-### Check B: Description Must Explain Why Change Is Needed
-
-The Pull Request description MUST explain **why this change is needed**.
-
-Look for: motivation, the problem being solved, business or user context, a linked issue or ticket, or any explanation of the purpose. A reference like "Closes #123" or "Fixes #456" satisfies this check since the linked issue provides the context.
-
-**Fail if**: the description is empty, or there is no explanation of the reason for the change.
-
----
-
-### Check C: Description Must Explain What Was Changed
-
-The pull request description MUST briefly explain **what was changed**.
-
-Look for: a summary of the modifications, affected components, files, or systems, key logic or behaviours introduced or removed.
-
-**Fail if**: there is no mention of what the change actually does, even in brief.
-
----
-
-### Check D: Description Must Explain How Changes Were Validated
-
-The pull request description MUST explain **how the changes were validated**.
-
-Look for: unit tests, integration tests, end-to-end tests, manual testing steps, CI results, staging environment verification, screenshots, or any method used to confirm correctness.
-
-**Fail if**: there is no mention of how the changes were verified to work.
-
----
-
-### Check E: Assignees List Must Not Be Empty
-
-The pull request MUST have at least one person assigned to it.
-
-**Fail if**: no assignees are set on the pull request.
-
----
-
-### Check F: File Changes Should Focus on a Single Concern
-
-The pull request should be focused on a single, coherent concern. It should not mix unrelated changes that make it harder to review, understand, or revert.
-
-Use the list of changed files alongside the title and description to assess whether all changes clearly serve the same stated purpose.
-
-**Pass if**: the changed files are consistent with a single topic or tightly related concerns: for example, a feature and its tests, or a bug fix alongside its documentation update.
-
-**Fail if**: the pull request mixes clearly unrelated concerns without explanation: for example, combining a new feature, an unrelated refactor, and dependency upgrades with no stated connection between them.
-
-Apply reasonable judgment. Only fail when the lack of focus is clear and significant, not for minor incidental changes.
-
----
-
-## Step 3: Report Results
+After running all checks using the skill:
 
 ### If ALL checks pass (A through F)
 
@@ -226,10 +133,5 @@ Once you've made the updates, this check will re-run automatically.
 
 ## Important Guidelines
 
-- Be constructive and helpful: not bureaucratic or harsh.
-- Apply reasonable judgment; do not fail for minor formatting preferences.
-- If the description is completely empty, fail Checks B, C, and D.
-- Do not comment on code quality, naming conventions, or anything outside the scope of this check.
-- Only mention failing requirements in the action-required comment. Do not mention checks that already pass.
 - Only call `upsert_pr_quality_comment` once per run, and do not use any other comment-writing tool for this workflow.
-- For Check F, only fail when the lack of focus is clear and significant. A Pull Request that touches source and test files for the same change is expected and fine.
+- Only mention failing requirements in the action-required comment. Do not mention checks that already pass.
