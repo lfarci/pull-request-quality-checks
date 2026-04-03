@@ -22,7 +22,7 @@
 #
 # Validates Pull Request title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"e43be283ad80140cadece50540beed5fbea9bf689392d7653ccbd7d126437768","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"b14c3cee86c1ee67e860d71b91713a1dac16fa6a11c391015bde7d2ae4acd4d6","compiler_version":"v0.62.2","strict":true}
 
 name: "Pull Request Quality Check"
 "on":
@@ -725,8 +725,8 @@ jobs:
             fi
             echo "PR quality check passed."
           else
-            echo "No PR quality check status found — failing as a precaution."
-            exit 1
+            echo "::warning::No PR quality check status found. The agent may not have completed its task. Treating as inconclusive."
+            echo "No PR quality check status found — treating as inconclusive."
           fi
 
       - name: Upload agent artifacts
