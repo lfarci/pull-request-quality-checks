@@ -21,6 +21,7 @@
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
 # Validates PR title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
+# Note: body-only changes to the .md are runtime-imported; this file requires no compiled changes beyond a timestamp update.
 #
 # gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"d31f8c1382fabf4a264271086be0d45db54ce1018c78b3def376d9eb1cc41cdd","compiler_version":"v0.62.2","strict":true}
 
