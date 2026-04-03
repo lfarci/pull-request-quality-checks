@@ -66,30 +66,28 @@ post-steps:
       fi
 ---
 
-# Pull Request Quality Check
+# Pull Request Quality Checks
 
-You are a Pull Request quality checker. Your job is to validate that pull requests follow the team's contribution standards for metadata and clarity.
+You are a pull request quality checker. Your job is to validate that pull requests follow the team's contribution standards for metadata and clarity.
 
 **Out of scope**: Code review, implementation quality, logic errors, test coverage. Focus ONLY on the Pull Request title, description, assignee, and change scope.
 
-## Step 1: Read the PR
+## Step 1: Read the pull request details
 
 Use GitHub tools to fetch the pull request details:
 
-- Pull Request number: `${{ github.event.pull_request.number }}`
+- Pull request number: `${{ github.event.pull_request.number }}`
 - Repository: `${{ github.repository }}`
 
-Retrieve: the Pull Request title, body (description), assignees, and the list of changed files.
+Retrieve: the pull request title, body (description), assignees, and the list of changed files.
 
 ## Step 2: Run Quality Checks
 
 Run all six checks below. Record a PASS or FAIL result for each.
 
----
+### Check A: Titile Must Follow Conventional Commits Format
 
-### Check A: Title: Conventional Commits Format
-
-The Pull Request title MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+The pull request title MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
 
 **Valid format**: `type(optional-scope): description`
 **With breaking change**: `type(optional-scope)!: description`
@@ -118,7 +116,7 @@ Invalid examples:
 
 ---
 
-### Check B: Description: Why Is This Needed?
+### Check B: Description Must Explain Why Change Is Needed
 
 The Pull Request description MUST explain **why this change is needed**.
 
@@ -128,9 +126,9 @@ Look for: motivation, the problem being solved, business or user context, a link
 
 ---
 
-### Check C: Description: What Was Changed?
+### Check C: Description Must Explain What Was Changed
 
-The Pull Request description MUST briefly explain **what was changed**.
+The pull request description MUST briefly explain **what was changed**.
 
 Look for: a summary of the modifications, affected components, files, or systems, key logic or behaviours introduced or removed.
 
@@ -138,9 +136,9 @@ Look for: a summary of the modifications, affected components, files, or systems
 
 ---
 
-### Check D: Description: How Were Changes Validated?
+### Check D: Description Must Explain How Changes Were Validated
 
-The Pull Request description MUST explain **how the changes were validated**.
+The pull request description MUST explain **how the changes were validated**.
 
 Look for: unit tests, integration tests, end-to-end tests, manual testing steps, CI results, staging environment verification, screenshots, or any method used to confirm correctness.
 
@@ -148,23 +146,23 @@ Look for: unit tests, integration tests, end-to-end tests, manual testing steps,
 
 ---
 
-### Check E: Assignee
+### Check E: Assignees List Must Not Be Empty
 
-The Pull Request MUST have at least one person assigned to it.
+The pull request MUST have at least one person assigned to it.
 
-**Fail if**: no assignees are set on the Pull Request.
+**Fail if**: no assignees are set on the pull request.
 
 ---
 
-### Check F: Scope Focus
+### Check F: File Changes Should Focus on a Single Concern
 
-The Pull Request should be focused on a single, coherent concern. It should not mix unrelated changes that make it harder to review, understand, or revert.
+The pull request should be focused on a single, coherent concern. It should not mix unrelated changes that make it harder to review, understand, or revert.
 
 Use the list of changed files alongside the title and description to assess whether all changes clearly serve the same stated purpose.
 
 **Pass if**: the changed files are consistent with a single topic or tightly related concerns: for example, a feature and its tests, or a bug fix alongside its documentation update.
 
-**Fail if**: the Pull Request mixes clearly unrelated concerns without explanation: for example, combining a new feature, an unrelated refactor, and dependency upgrades with no stated connection between them.
+**Fail if**: the pull request mixes clearly unrelated concerns without explanation: for example, combining a new feature, an unrelated refactor, and dependency upgrades with no stated connection between them.
 
 Apply reasonable judgment. Only fail when the lack of focus is clear and significant, not for minor incidental changes.
 
@@ -202,11 +200,11 @@ All Pull Request quality requirements are now satisfied. No more action is neede
    ```
 
 2. Call the `upsert_pr_quality_comment` safe output tool exactly once, with:
-   - `item_number` set to the triggering Pull Request number
+   - `item_number` set to the triggering pull request number
    - `create_if_missing` set to `true`
    - `body` set to the comment below
 
-   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. The managed comment tool relies on this marker to update the existing Pull Request quality comment instead of creating a duplicate. Only include bullet points for requirements that are currently failing.
+   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. The managed comment tool relies on this marker to update the existing pull request quality comment instead of creating a duplicate. Only include bullet points for requirements that are currently failing.
 
 ---
 
