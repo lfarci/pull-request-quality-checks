@@ -95,9 +95,8 @@ After running all checks using the skill, **write the verdict to `/tmp/pr-check-
 ---
 
 <!-- pr-quality-check-bot -->
-## Pull Request Quality Check: Resolved
 
-All Pull Request quality requirements are now satisfied. No more action is needed.
+All quality requirements are satisfied. Thanks for keeping the bar high! ✓
 
 ---
 
@@ -108,22 +107,19 @@ All Pull Request quality requirements are now satisfied. No more action is neede
    - `create_if_missing` set to `true`
    - `body` composed as follows:
 
-   Start with the marker line `<!-- pr-quality-check-bot -->`, then write the comment body. Only include a bullet point for each check that **actually failed** — do not include checks that passed. Each bullet must reference the specific issue found in this pull request (e.g. the actual title, the actual missing content), not generic placeholder text.
+   Start with the marker line `<!-- pr-quality-check-bot -->`, then write the comment body as natural prose. Only mention checks that actually failed — skip checks that passed. Reference the specific issue found in this pull request, not generic placeholder text.
 
    Use this structure:
 
    ```
    <!-- pr-quality-check-bot -->
 
-   This Pull Request still has a few requirements to address before it is ready to merge:
+   A few things need attention before this can merge:
 
-   - **<Check label>**: <Specific, actionable feedback based on what was actually found in this PR>
-   ...
+   - <Concise, specific feedback for each failing check — one bullet per failure>
 
    Once you've made the updates, this check will re-run automatically.
    ```
-
-   **Check labels**: Title, Why, What, Validation, Assignee, Scope Focus
 
 ---
 
