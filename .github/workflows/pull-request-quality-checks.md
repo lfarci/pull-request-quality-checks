@@ -106,24 +106,24 @@ All Pull Request quality requirements are now satisfied. No more action is neede
 1. Call the `upsert_pr_quality_comment` safe output tool exactly once, with:
    - `item_number` set to the triggering pull request number
    - `create_if_missing` set to `true`
-   - `body` set to the comment below
+   - `body` composed as follows:
 
-   Always include the marker `<!-- pr-quality-check-bot -->` as the very first line of the comment. The managed comment tool relies on this marker to update the existing pull request quality comment instead of creating a duplicate. Only include bullet points for requirements that are currently failing.
+   Start with the marker line `<!-- pr-quality-check-bot -->`, then write the comment body. Only include a bullet point for each check that **actually failed** — do not include checks that passed. Each bullet must reference the specific issue found in this pull request (e.g. the actual title, the actual missing content), not generic placeholder text.
 
----
+   Use this structure:
 
-<!-- pr-quality-check-bot -->
+   ```
+   <!-- pr-quality-check-bot -->
 
-This Pull Request still has a few requirements to address before it is ready to merge:
+   This Pull Request still has a few requirements to address before it is ready to merge:
 
-- **Title**: The title `"Updated stuff"` does not follow Conventional Commits. Try: `fix: resolve login timeout issue` or `feat(profile): add avatar upload`.
-- **Why**: Please explain the motivation for this change.
-- **What**: Please add a short summary of what files or components were modified.
-- **Validation**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
-- **Assignee**: Please assign at least one person to this Pull Request.
-- **Scope Focus**: This Pull Request appears to mix unrelated changes. Consider splitting it into separate Pull Requests, or add a note to the description explaining how the different changes are connected.
+   - **<Check label>**: <Specific, actionable feedback based on what was actually found in this PR>
+   ...
 
-Once you've made the updates, this check will re-run automatically.
+   Once you've made the updates, this check will re-run automatically.
+   ```
+
+   **Check labels**: Title, Why, What, Validation, Assignee, Scope Focus
 
 ---
 
