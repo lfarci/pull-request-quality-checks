@@ -22,7 +22,7 @@
 #
 # Validates Pull Request title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"f7a24af5437cb6bdbba558cc02e17ba16eddf23433e5c00ba6d48fd98fffe5a6","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"e43be283ad80140cadece50540beed5fbea9bf689392d7653ccbd7d126437768","compiler_version":"v0.62.2","strict":true}
 
 name: "Pull Request Quality Check"
 "on":
@@ -76,7 +76,7 @@ jobs:
         env:
           GH_AW_INFO_ENGINE_ID: "copilot"
           GH_AW_INFO_ENGINE_NAME: "GitHub Copilot CLI"
-          GH_AW_INFO_MODEL: "gpt-5-mini"
+          GH_AW_INFO_MODEL: "gpt-4.1"
           GH_AW_INFO_VERSION: ""
           GH_AW_INFO_AGENT_VERSION: "latest"
           GH_AW_INFO_CLI_VERSION: "v0.62.2"
@@ -579,7 +579,7 @@ jobs:
         env:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-5-mini
+          COPILOT_MODEL: gpt-4.1
           GH_AW_MCP_CONFIG: /home/runner/.copilot/mcp-config.json
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
@@ -716,7 +716,18 @@ jobs:
           fi
       - if: always()
         name: Fail job if Pull Request quality check did not pass
-        run: "if [ -f /tmp/pr-check-status ]; then\n  status=$(cat /tmp/pr-check-status)\n  if [ \"$status\" = \"FAIL\" ]; then\n    echo \"PR quality check failed. See the PR comment for details.\"\n    exit 1\n  fi\n  echo \"PR quality check passed.\"\nelse\n  echo \"No PR quality check status found : treating as inconclusive.\"\nfi"
+        run: |-
+          if [ -f /tmp/pr-check-status ]; then
+            status=$(cat /tmp/pr-check-status)
+            if [ "$status" = "FAIL" ]; then
+              echo "PR quality check failed. See the PR comment for details."
+              exit 1
+            fi
+            echo "PR quality check passed."
+          else
+            echo "No PR quality check status found — failing as a precaution."
+            exit 1
+          fi
 
       - name: Upload agent artifacts
         if: always()
@@ -806,7 +817,7 @@ jobs:
         env:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-5-mini
+          COPILOT_MODEL: gpt-4.1
           GH_AW_PHASE: detection
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_VERSION: v0.62.2
@@ -1006,7 +1017,7 @@ jobs:
     env:
       GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/pull-request-quality-checks"
       GH_AW_ENGINE_ID: "copilot"
-      GH_AW_ENGINE_MODEL: "gpt-5-mini"
+      GH_AW_ENGINE_MODEL: "gpt-4.1"
       GH_AW_WORKFLOW_ID: "pull-request-quality-checks"
       GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
     outputs:

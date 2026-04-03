@@ -14,7 +14,7 @@ permissions:
 
 engine:
   id: copilot
-  model: gpt-5-mini
+  model: gpt-4.1
 
 tools:
   github:
@@ -64,7 +64,8 @@ post-steps:
         fi
         echo "PR quality check passed."
       else
-        echo "No PR quality check status found : treating as inconclusive."
+        echo "No PR quality check status found — failing as a precaution."
+        exit 1
       fi
 ---
 
@@ -77,15 +78,14 @@ Apply the `pull-request-quality-checks` skill to validate this pull request.
 
 ## Reporting Results
 
-After running all checks using the skill:
+After running all checks using the skill, **write the verdict to `/tmp/pr-check-status` as your first action** — before calling any safe output tool:
+
+- All checks pass: `echo "PASS" > /tmp/pr-check-status`
+- Any check fails: `echo "FAIL" > /tmp/pr-check-status`
 
 ### If ALL checks pass (A through F)
 
-1. Write `PASS` to `/tmp/pr-check-status`:
-   ```bash
-   echo "PASS" > /tmp/pr-check-status
-   ```
-2. Call `upsert_pr_quality_comment` exactly once with:
+1. Call `upsert_pr_quality_comment` exactly once with:
    - `item_number`: the triggering Pull Request number
    - `create_if_missing`: `false`
    - `body`: the resolved comment below
@@ -103,12 +103,7 @@ All Pull Request quality requirements are now satisfied. No more action is neede
 
 ### If ANY check fails
 
-1. Write `FAIL` to `/tmp/pr-check-status`:
-   ```bash
-   echo "FAIL" > /tmp/pr-check-status
-   ```
-
-2. Call the `upsert_pr_quality_comment` safe output tool exactly once, with:
+1. Call the `upsert_pr_quality_comment` safe output tool exactly once, with:
    - `item_number` set to the triggering pull request number
    - `create_if_missing` set to `true`
    - `body` set to the comment below
