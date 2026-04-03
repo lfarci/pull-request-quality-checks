@@ -71,68 +71,75 @@ post-steps:
 
 # Pull Request Quality Checks
 
-Apply the `pull-request-quality-checks` skill to validate this pull request.
+Validate pull request #`${{ github.event.pull_request.number }}` in `${{ github.repository }}`.
 
-- Pull request number: `${{ github.event.pull_request.number }}`
-- Repository: `${{ github.repository }}`
+## Step 1 — Fetch Pull Request Data
 
-## Fetching Pull Request Details
+Call the **`pull_request_read`** tool twice. This is the ONLY tool that can read pull request data.
 
-Use the `pull_request_read` tool (NOT `get_pull_request`, which does not exist) to fetch pull request data:
+1. Get details (title, body, assignees):
 
-- **Get PR details** (title, body, assignees): call `pull_request_read` with `method: "get"`, `owner`, `repo`, and `pullNumber`.
-- **Get changed files**: call `pull_request_read` with `method: "get_files"`, `owner`, `repo`, and `pullNumber`.
+   ```
+   pull_request_read  method: "get"  owner: "<owner>"  repo: "<repo>"  pullNumber: <number>
+   ```
 
-Do NOT call `get_pull_request` — that tool name is invalid and will fail.
+2. Get changed files:
 
-## Reporting Results
+   ```
+   pull_request_read  method: "get_files"  owner: "<owner>"  repo: "<repo>"  pullNumber: <number>
+   ```
 
-After running all checks using the skill, **write the verdict to `/tmp/pr-check-status` as your first action** — before calling any safe output tool:
+Replace `<owner>`, `<repo>`, and `<number>` with the values from the repository and pull request context above.
+
+**Important:** The tool name is exactly `pull_request_read`. No other tool name works. Do NOT call `get_pull_request` — it does not exist and will fail.
+
+## Step 2 — Run Quality Checks
+
+{{#runtime-import .github/skills/pull-request-quality-checks/SKILL.md}}
+
+## Step 3 — Write Verdict
+
+Write the verdict to `/tmp/pr-check-status` BEFORE calling any safe output tool:
 
 - All checks pass: `echo "PASS" > /tmp/pr-check-status`
 - Any check fails: `echo "FAIL" > /tmp/pr-check-status`
 
-### If ALL checks pass (A through F)
+## Step 4 — Post Results Comment
 
-1. Call `upsert_pr_quality_comment` exactly once with:
-   - `item_number`: the triggering Pull Request number
-   - `create_if_missing`: `false`
-   - `body`: the resolved comment below
+Call `upsert_pr_quality_comment` exactly once.
 
-   This updates an existing managed PR quality comment when the PR becomes compliant again, but it does not create a first-run success comment.
+### If ALL checks passed
 
----
+Call with:
+- `item_number`: `${{ github.event.pull_request.number }}`
+- `create_if_missing`: `false`
+- `body`:
 
+```
 <!-- pr-quality-check-bot -->
 
 All quality requirements are satisfied. Thanks for keeping the bar high! ✓
+```
 
----
+### If ANY check failed
 
-### If ANY check fails
+Call with:
+- `item_number`: `${{ github.event.pull_request.number }}`
+- `create_if_missing`: `true`
+- `body`: Start with `<!-- pr-quality-check-bot -->`, then list only the failing checks with specific, actionable feedback. Do not mention passing checks.
 
-1. Call the `upsert_pr_quality_comment` safe output tool exactly once, with:
-   - `item_number` set to the triggering pull request number
-   - `create_if_missing` set to `true`
-   - `body` composed as follows:
+```
+<!-- pr-quality-check-bot -->
 
-   Start with the marker line `<!-- pr-quality-check-bot -->`, then write the comment body as natural prose. Only mention checks that actually failed — skip checks that passed. Reference the specific issue found in this pull request, not generic placeholder text.
+A few things need attention before this can merge:
 
-   Use this structure:
+- <Concise, specific feedback for each failing check — one bullet per failure>
 
-   ```
-   <!-- pr-quality-check-bot -->
+Once you've made the updates, this check will re-run automatically.
+```
 
-   A few things need attention before this can merge:
+## Rules
 
-   - <Concise, specific feedback for each failing check — one bullet per failure>
-
-   Once you've made the updates, this check will re-run automatically.
-   ```
-
----
-
-## Important Guidelines
-
-- Only call `upsert_pr_quality_comment` once per run, and do not use any other comment-writing tool for this workflow.
-- Only mention failing requirements in the action-required comment. Do not mention checks that already pass.
+- Only call `upsert_pr_quality_comment` once per run.
+- Only mention failing checks in the comment. Skip passing checks.
+- Do not use any other comment-writing tool.
