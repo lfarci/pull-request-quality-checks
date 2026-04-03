@@ -2,6 +2,8 @@
 
 An automated PR quality validation system powered by [GitHub Agentic Workflows (gh-aw)](https://github.com/github/gh-aw) and GitHub Copilot. When a pull request is opened or updated, a Copilot agent validates it against a defined quality contract and posts a managed comment with the results. The workflow blocks merging if any check fails.
 
+> 📖 For a deeper dive into the design and implementation, read [the full article on loganfarci.com](https://www.loganfarci.com/articles/agentic-workflow-pr-quality-checks).
+
 ## How It Works
 
 ```
