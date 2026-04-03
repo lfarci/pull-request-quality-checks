@@ -20,11 +20,11 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Validates PR title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
+# Validates Pull Request title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"d31f8c1382fabf4a264271086be0d45db54ce1018c78b3def376d9eb1cc41cdd","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"b14c3cee86c1ee67e860d71b91713a1dac16fa6a11c391015bde7d2ae4acd4d6","compiler_version":"v0.62.2","strict":true}
 
-name: "PR Quality Check"
+name: "Pull Request Quality Check"
 "on":
   pull_request:
     types:
@@ -47,7 +47,7 @@ concurrency:
   group: "gh-aw-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}"
   cancel-in-progress: true
 
-run-name: "PR Quality Check"
+run-name: "Pull Request Quality Check"
 
 jobs:
   activation:
@@ -76,11 +76,11 @@ jobs:
         env:
           GH_AW_INFO_ENGINE_ID: "copilot"
           GH_AW_INFO_ENGINE_NAME: "GitHub Copilot CLI"
-          GH_AW_INFO_MODEL: "gpt-5-mini"
+          GH_AW_INFO_MODEL: "gpt-4.1"
           GH_AW_INFO_VERSION: ""
           GH_AW_INFO_AGENT_VERSION: "latest"
           GH_AW_INFO_CLI_VERSION: "v0.62.2"
-          GH_AW_INFO_WORKFLOW_NAME: "PR Quality Check"
+          GH_AW_INFO_WORKFLOW_NAME: "Pull Request Quality Check"
           GH_AW_INFO_EXPERIMENTAL: "false"
           GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: "true"
           GH_AW_INFO_STAGED: "false"
@@ -351,7 +351,7 @@ jobs:
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
           cat > ${RUNNER_TEMP}/gh-aw/safeoutputs/config.json << 'GH_AW_SAFE_OUTPUTS_CONFIG_EOF'
-          {"missing_data":{},"missing_tool":{},"noop":{"max":1},"upsert-pr-quality-comment":{"description":"Create or update the singleton PR quality comment for the current pull request.","inputs":{"body":{"default":null,"description":"The full PR quality comment body. The managed marker will be normalized automatically.","required":true,"type":"string"},"create_if_missing":{"default":null,"description":"Whether to create a managed PR quality comment when none already exists.","required":false,"type":"boolean"},"item_number":{"default":null,"description":"The pull request number to comment on. Defaults to the triggering PR when omitted.","required":false,"type":"string"}},"output":"Upserted PR quality comment."}}
+          {"missing_data":{},"missing_tool":{},"noop":{"max":1},"upsert-pr-quality-comment":{"description":"Create or update the singleton PR quality comment for the current pull request.","inputs":{"body":{"default":null,"description":"The full Pull Request quality comment body. The managed marker will be normalized automatically.","required":true,"type":"string"},"create_if_missing":{"default":null,"description":"Whether to create a managed Pull Request quality comment when none already exists.","required":false,"type":"boolean"},"item_number":{"default":null,"description":"The pull request number to comment on. Defaults to the triggering Pull Request when omitted.","required":false,"type":"string"}},"output":"Upserted PR quality comment."}}
           GH_AW_SAFE_OUTPUTS_CONFIG_EOF
       - name: Write Safe Outputs Tools
         run: |
@@ -366,15 +366,15 @@ jobs:
                   "additionalProperties": false,
                   "properties": {
                     "body": {
-                      "description": "The full PR quality comment body. The managed marker will be normalized automatically.",
+                      "description": "The full Pull Request quality comment body. The managed marker will be normalized automatically.",
                       "type": "string"
                     },
                     "create_if_missing": {
-                      "description": "Whether to create a managed PR quality comment when none already exists.",
+                      "description": "Whether to create a managed Pull Request quality comment when none already exists.",
                       "type": "boolean"
                     },
                     "item_number": {
-                      "description": "The pull request number to comment on. Defaults to the triggering PR when omitted.",
+                      "description": "The pull request number to comment on. Defaults to the triggering Pull Request when omitted.",
                       "type": "string"
                     }
                   },
@@ -579,7 +579,7 @@ jobs:
         env:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-5-mini
+          COPILOT_MODEL: gpt-4.1
           GH_AW_MCP_CONFIG: /home/runner/.copilot/mcp-config.json
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
@@ -715,7 +715,7 @@ jobs:
             echo 'AWF binary not installed, skipping firewall log summary'
           fi
       - if: always()
-        name: Fail job if PR quality check did not pass
+        name: Fail job if Pull Request quality check did not pass
         run: |-
           if [ -f /tmp/pr-check-status ]; then
             status=$(cat /tmp/pr-check-status)
@@ -725,6 +725,7 @@ jobs:
             fi
             echo "PR quality check passed."
           else
+            echo "::warning::No PR quality check status found. The agent may not have completed its task. Treating as inconclusive."
             echo "No PR quality check status found — treating as inconclusive."
           fi
 
@@ -781,8 +782,8 @@ jobs:
         if: always() && steps.detection_guard.outputs.run_detection == 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
-          WORKFLOW_NAME: "PR Quality Check"
-          WORKFLOW_DESCRIPTION: "Validates PR title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met."
+          WORKFLOW_NAME: "Pull Request Quality Check"
+          WORKFLOW_DESCRIPTION: "Validates Pull Request title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met."
           HAS_PATCH: ${{ steps.collect_output.outputs.has_patch }}
         with:
           script: |
@@ -816,7 +817,7 @@ jobs:
         env:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-5-mini
+          COPILOT_MODEL: gpt-4.1
           GH_AW_PHASE: detection
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_VERSION: v0.62.2
@@ -909,7 +910,7 @@ jobs:
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
           GH_AW_NOOP_MAX: "1"
-          GH_AW_WORKFLOW_NAME: "PR Quality Check"
+          GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -922,7 +923,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "PR Quality Check"
+          GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -936,7 +937,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "PR Quality Check"
+          GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
           GH_AW_WORKFLOW_ID: "pull-request-quality-checks"
@@ -959,7 +960,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "PR Quality Check"
+          GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
           GH_AW_NOOP_MESSAGE: ${{ steps.noop.outputs.noop_message }}
@@ -1000,7 +1001,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_SKIP_BOTS: dependabot,renovate,github-actions
-          GH_AW_WORKFLOW_NAME: "PR Quality Check"
+          GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -1016,9 +1017,9 @@ jobs:
     env:
       GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/pull-request-quality-checks"
       GH_AW_ENGINE_ID: "copilot"
-      GH_AW_ENGINE_MODEL: "gpt-5-mini"
+      GH_AW_ENGINE_MODEL: "gpt-4.1"
       GH_AW_WORKFLOW_ID: "pull-request-quality-checks"
-      GH_AW_WORKFLOW_NAME: "PR Quality Check"
+      GH_AW_WORKFLOW_NAME: "Pull Request Quality Check"
     outputs:
       code_push_failure_count: ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
       code_push_failure_errors: ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
@@ -1097,7 +1098,9 @@ jobs:
         run: |
           find "${RUNNER_TEMP}/gh-aw/safe-jobs/" -type f -print
           echo "GH_AW_AGENT_OUTPUT=${RUNNER_TEMP}/gh-aw/safe-jobs/agent_output.json" >> "$GITHUB_ENV"
-      - name: Upsert managed PR quality comment
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Upsert managed Pull Request quality comment
         uses: ./.github/actions/upsert-pr-quality-comment
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
