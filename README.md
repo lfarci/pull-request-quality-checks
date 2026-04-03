@@ -67,6 +67,22 @@ Optional. Remove this section if not relevant, or write N/A. Reference related i
 2. Add the `COPILOT_GITHUB_TOKEN` secret to your repository (**Settings → Secrets and variables → Actions**).
 3. The workflow triggers automatically on pull request events: no further configuration required.
 
+### Additional setup for public repositories
+
+On public repositories, gh-aw automatically enforces a guard policy that requires an authenticated user identity to access GitHub data via the MCP server. The default `GITHUB_TOKEN` does not satisfy this requirement, so you must provide an additional secret:
+
+Add a `GH_AW_GITHUB_MCP_SERVER_TOKEN` secret containing a **fine-grained personal access token** with the following repository permissions:
+
+| Permission | Level |
+|---|---|
+| Contents | Read-only |
+| Pull requests | Read-only |
+| Issues | Read-only |
+
+Create the token at **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**, scoped to this repository only.
+
+> This is not required on private repositories, where `GITHUB_TOKEN` is sufficient.
+
 ### Modifying the Validation Rules
 
 Rules are defined in `.github/skills/pr-quality-checks/contract.md`. After editing:
