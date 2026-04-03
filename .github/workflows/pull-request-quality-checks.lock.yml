@@ -22,7 +22,7 @@
 #
 # Validates Pull Request title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"d31f8c1382fabf4a264271086be0d45db54ce1018c78b3def376d9eb1cc41cdd","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"2b5a4de9e4c8f03d5732d921629d0a984f77256cab63b3a4e237e18da29421e2","compiler_version":"v0.62.2","strict":true}
 
 name: "Pull Request Quality Check"
 "on":
@@ -313,7 +313,7 @@ jobs:
           SERVER_URL_STRIPPED="${SERVER_URL#https://}"
           git remote set-url origin "https://x-access-token:${{ github.token }}@${SERVER_URL_STRIPPED}/${REPO_NAME}.git"
           echo "Git configured with standard GitHub Actions identity"
-      - name: Checkout Pull Request branch
+      - name: Checkout PR branch
         id: checkout-pr
         if: |
           (github.event.pull_request) || (github.event.issue.pull_request)
@@ -351,7 +351,7 @@ jobs:
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
           cat > ${RUNNER_TEMP}/gh-aw/safeoutputs/config.json << 'GH_AW_SAFE_OUTPUTS_CONFIG_EOF'
-          {"missing_data":{},"missing_tool":{},"noop":{"max":1},"upsert-pr-quality-comment":{"description":"Create or update the singleton Pull Request quality comment for the current pull request.","inputs":{"body":{"default":null,"description":"The full Pull Request quality comment body. The managed marker will be normalized automatically.","required":true,"type":"string"},"create_if_missing":{"default":null,"description":"Whether to create a managed Pull Request quality comment when none already exists.","required":false,"type":"boolean"},"item_number":{"default":null,"description":"The pull request number to comment on. Defaults to the triggering Pull Request when omitted.","required":false,"type":"string"}},"output":"Upserted Pull Request quality comment."}}
+          {"missing_data":{},"missing_tool":{},"noop":{"max":1},"upsert-pr-quality-comment":{"description":"Create or update the singleton PR quality comment for the current pull request.","inputs":{"body":{"default":null,"description":"The full Pull Request quality comment body. The managed marker will be normalized automatically.","required":true,"type":"string"},"create_if_missing":{"default":null,"description":"Whether to create a managed Pull Request quality comment when none already exists.","required":false,"type":"boolean"},"item_number":{"default":null,"description":"The pull request number to comment on. Defaults to the triggering Pull Request when omitted.","required":false,"type":"string"}},"output":"Upserted PR quality comment."}}
           GH_AW_SAFE_OUTPUTS_CONFIG_EOF
       - name: Write Safe Outputs Tools
         run: |
@@ -361,7 +361,7 @@ jobs:
             "repo_params": {},
             "dynamic_tools": [
               {
-                "description": "Create or update the singleton Pull Request quality comment for the current pull request.",
+                "description": "Create or update the singleton PR quality comment for the current pull request.",
                 "inputSchema": {
                   "additionalProperties": false,
                   "properties": {
@@ -716,17 +716,7 @@ jobs:
           fi
       - if: always()
         name: Fail job if Pull Request quality check did not pass
-        run: |-
-          if [ -f /tmp/pr-check-status ]; then
-            status=$(cat /tmp/pr-check-status)
-            if [ "$status" = "FAIL" ]; then
-              echo "Pull Request quality check failed. See the Pull Request comment for details."
-              exit 1
-            fi
-            echo "Pull Request quality check passed."
-          else
-            echo "No Pull Request quality check status found : treating as inconclusive."
-          fi
+        run: "if [ -f /tmp/pr-check-status ]; then\n  status=$(cat /tmp/pr-check-status)\n  if [ \"$status\" = \"FAIL\" ]; then\n    echo \"PR quality check failed. See the PR comment for details.\"\n    exit 1\n  fi\n  echo \"PR quality check passed.\"\nelse\n  echo \"No PR quality check status found : treating as inconclusive.\"\nfi"
 
       - name: Upload agent artifacts
         if: always()
@@ -1097,14 +1087,6 @@ jobs:
         run: |
           find "${RUNNER_TEMP}/gh-aw/safe-jobs/" -type f -print
           echo "GH_AW_AGENT_OUTPUT=${RUNNER_TEMP}/gh-aw/safe-jobs/agent_output.json" >> "$GITHUB_ENV"
-      - name: Checkout .github folder
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          sparse-checkout: |
-            .github
-          sparse-checkout-cone-mode: true
-          fetch-depth: 1
       - name: Upsert managed Pull Request quality comment
         uses: ./.github/actions/upsert-pr-quality-comment
         with:
