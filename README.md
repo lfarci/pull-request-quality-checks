@@ -7,30 +7,30 @@ An automated PR quality validation system powered by [GitHub Agentic Workflows (
 ## How It Works
 
 ```
-PR opened / edited
+Pull Request opened / edited
       ↓
-Copilot agent reads PR title, description, assignees, and changed files
+Copilot agent reads Pull Request title, description, assignees, and changed files
       ↓
 Validates against 9-point quality contract
       ↓
-Posts or updates a comment on the PR with results
+Posts or updates a comment on the Pull Request with results
       ↓
-Exits 1 (blocks merge) if any check fails — exits 0 if all pass
+Exits 1 (blocks merge) if any check fails: exits 0 if all pass
 ```
 
 ## Quality Checks
 
 | Check | Rule |
 |-------|------|
-| **A** | PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description` |
+| **A** | Pull Request title follows [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): description` |
 | **B** | Description includes all required sections: `Why`, `What Changed`, `Validation / Tests` |
-| **C** | `Why` section clearly explains motivation — no empty, TODO, or TBD placeholders |
+| **C** | `Why` section clearly explains motivation: no empty, TODO, or TBD placeholders |
 | **D** | `What Changed` accurately reflects the actual diff |
 | **E** | `Validation / Tests` provides concrete evidence (unit tests, manual steps, CI results, staging checks) |
 | **F** | `Screenshots` section contains actual images or `N/A` (if present) |
 | **G** | `Linked Issue` references a real issue or `N/A` (if present) |
-| **H** | PR has at least one assignee |
-| **I** | PR is focused on a single concern — no mixing of unrelated changes |
+| **H** | Pull Request has at least one assignee |
+| **I** | Pull Request is focused on a single concern: no mixing of unrelated changes |
 
 ## PR Description Template
 
@@ -65,7 +65,7 @@ Optional. Remove this section if not relevant, or write N/A. Reference related i
 
 1. Copy the `.github/` folder from this repository into your own.
 2. Add the `COPILOT_GITHUB_TOKEN` secret to your repository (**Settings → Secrets and variables → Actions**).
-3. The workflow triggers automatically on pull request events — no further configuration required.
+3. The workflow triggers automatically on pull request events: no further configuration required.
 
 ### Modifying the Validation Rules
 
@@ -77,7 +77,7 @@ gh aw compile
 
 This regenerates `.github/workflows/pr-quality-check.lock.yml`. Commit both files.
 
-> **Note:** Never edit `.lock.yml` directly — it is auto-generated and will be overwritten on the next compile.
+> **Note:** Never edit `.lock.yml` directly: it is auto-generated and will be overwritten on the next compile.
 
 ## Workflow Triggers
 
