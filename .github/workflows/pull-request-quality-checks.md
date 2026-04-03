@@ -95,39 +95,7 @@ Replace `<owner>`, `<repo>`, and `<number>` with the values from the repository 
 
 ## Step 2 — Run Quality Checks
 
-Using the data from Step 1, evaluate each check below. Record PASS or FAIL for each.
-
-### Check A — Title Follows Conventional Commits
-
-The title MUST match: `type(optional-scope): description` or `type(optional-scope)!: description`
-
-Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-
-Rules:
-- Type must be lowercase
-- Colon must be followed by exactly one space
-- Description after the colon must not be empty
-- Scope in parentheses is optional but must be non-empty if present
-
-### Check B — Description Explains Why
-
-The description MUST explain why this change is needed: motivation, problem being solved, business context, or a linked issue. A reference like "Closes #123" satisfies this check. Fail if the description is empty or has no explanation of purpose.
-
-### Check C — Description Explains What Changed
-
-The description MUST summarize what was changed: affected components, files, key logic introduced or removed. Fail if there is no mention of what the change does.
-
-### Check D — Description Explains How Changes Were Validated
-
-The description MUST explain how the changes were validated: tests, manual steps, CI results, screenshots, or any verification method. Fail if there is no mention of validation.
-
-### Check E — Assignee Present
-
-The pull request MUST have at least one assignee. Fail if no assignees are set.
-
-### Check F — Single Concern Focus
-
-The pull request should focus on a single coherent concern. Use the changed files alongside the title and description to assess whether all changes serve the same purpose. Only fail when the lack of focus is clear and significant.
+{{#runtime-import .github/skills/pull-request-quality-checks/SKILL.md}}
 
 ## Step 3 — Write Verdict
 
