@@ -118,14 +118,13 @@ All Pull Request quality requirements are now satisfied. No more action is neede
 ---
 
 <!-- pr-quality-check-bot -->
-## Pull Request Quality Check: Action Required
 
 This Pull Request still has a few requirements to address before it is ready to merge:
 
 - **Title**: The title `"Updated stuff"` does not follow Conventional Commits. Try: `fix: resolve login timeout issue` or `feat(profile): add avatar upload`.
-- **Description : Why**: Please explain the motivation for this change.
-- **Description : What**: Please add a short summary of what files or components were modified.
-- **Description : How validated**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
+- **Why**: Please explain the motivation for this change.
+- **What**: Please add a short summary of what files or components were modified.
+- **Validation**: Please describe how you tested this change (e.g., "Added unit tests in `auth.test.ts`", "Tested manually on staging").
 - **Assignee**: Please assign at least one person to this Pull Request.
 - **Scope Focus**: This Pull Request appears to mix unrelated changes. Consider splitting it into separate Pull Requests, or add a note to the description explaining how the different changes are connected.
 
