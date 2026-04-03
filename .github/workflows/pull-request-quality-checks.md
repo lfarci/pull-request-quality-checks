@@ -44,6 +44,8 @@ safe-outputs:
           required: false
           type: boolean
       steps:
+        - name: Checkout repository
+          uses: actions/checkout@v6
         - name: Upsert managed Pull Request quality comment
           uses: ./.github/actions/upsert-pr-quality-comment
           with:

@@ -22,7 +22,7 @@
 #
 # Validates Pull Request title, description completeness (why/what/how), assignee presence, and scope focus. Blocks merge if requirements are not met.
 #
-# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"2b5a4de9e4c8f03d5732d921629d0a984f77256cab63b3a4e237e18da29421e2","compiler_version":"v0.62.2","strict":true}
+# gh-aw-metadata: {"schema_version":"v2","frontmatter_hash":"f7a24af5437cb6bdbba558cc02e17ba16eddf23433e5c00ba6d48fd98fffe5a6","compiler_version":"v0.62.2","strict":true}
 
 name: "Pull Request Quality Check"
 "on":
@@ -1087,6 +1087,8 @@ jobs:
         run: |
           find "${RUNNER_TEMP}/gh-aw/safe-jobs/" -type f -print
           echo "GH_AW_AGENT_OUTPUT=${RUNNER_TEMP}/gh-aw/safe-jobs/agent_output.json" >> "$GITHUB_ENV"
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Upsert managed Pull Request quality comment
         uses: ./.github/actions/upsert-pr-quality-comment
         with:
