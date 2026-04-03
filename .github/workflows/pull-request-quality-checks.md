@@ -74,12 +74,25 @@ You are a PR quality checker. Your job is to validate that pull requests follow 
 
 ## Step 1: Read the PR
 
-Use GitHub tools to fetch the pull request details:
+Call the **`pull_request_read`** tool to fetch pull request details. This is the ONLY tool that can read pull request data.
 
+1. Get PR details (title, body, assignees):
+
+   ```
+   pull_request_read  method: "get"  owner: "<owner>"  repo: "<repo>"  pullNumber: <number>
+   ```
+
+2. Get changed files:
+
+   ```
+   pull_request_read  method: "get_files"  owner: "<owner>"  repo: "<repo>"  pullNumber: <number>
+   ```
+
+Replace `<owner>`, `<repo>`, and `<number>` with values from the context above:
 - PR number: `${{ github.event.pull_request.number }}`
 - Repository: `${{ github.repository }}`
 
-Retrieve: the PR title, body (description), assignees, and the list of changed files.
+**Important:** The tool name is exactly `pull_request_read`. Do NOT call `get_pull_request` — it does not exist and will fail.
 
 ## Step 2: Run Quality Checks
 
