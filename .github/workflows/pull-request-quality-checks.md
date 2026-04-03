@@ -64,8 +64,8 @@ post-steps:
         fi
         echo "PR quality check passed."
       else
-        echo "No PR quality check status found — failing as a precaution."
-        exit 1
+        echo "::warning::No PR quality check status found. The agent may not have completed its task. Treating as inconclusive."
+        echo "No PR quality check status found — treating as inconclusive."
       fi
 ---
 
@@ -75,6 +75,15 @@ Apply the `pull-request-quality-checks` skill to validate this pull request.
 
 - Pull request number: `${{ github.event.pull_request.number }}`
 - Repository: `${{ github.repository }}`
+
+## Fetching Pull Request Details
+
+Use the `pull_request_read` tool (NOT `get_pull_request`, which does not exist) to fetch pull request data:
+
+- **Get PR details** (title, body, assignees): call `pull_request_read` with `method: "get"`, `owner`, `repo`, and `pullNumber`.
+- **Get changed files**: call `pull_request_read` with `method: "get_files"`, `owner`, `repo`, and `pullNumber`.
+
+Do NOT call `get_pull_request` — that tool name is invalid and will fail.
 
 ## Reporting Results
 

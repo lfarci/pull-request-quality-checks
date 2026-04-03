@@ -6,7 +6,12 @@ argument-hint: 'PR number or URL to validate'
 
 # Pull Request Quality Checks
 
-Fetch the pull request details (title, description, assignees, changed files), then run the six checks below. Record a PASS or FAIL result for each.
+Use the `pull_request_read` tool to fetch pull request data. Do NOT use `get_pull_request` — that tool does not exist.
+
+- To get PR details (title, body, assignees): `pull_request_read` with `method: "get"`, `owner`, `repo`, `pullNumber`
+- To get changed files: `pull_request_read` with `method: "get_files"`, `owner`, `repo`, `pullNumber`
+
+Then run the six checks below. Record a PASS or FAIL result for each.
 
 **Scope**: title, description, assignee, and change focus only — not code quality, logic, or test coverage.
 
